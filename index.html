@@ -594,20 +594,20 @@ function construireCompl() {
   // Plat principal
   const trPlat = document.createElement('tr');
   const td0Plat = document.createElement('td');
-  td0Plat.innerHTML = "As-tu eu l'impression qu'il<br>n'y avait pas assez dans<br>le plat principal ?";
+  td0Plat.innerHTML = "Est-ce qu'il y a assez à manger<br>dans le plat principal ?";
   trPlat.appendChild(td0Plat);
 
   const trCondPlat = document.createElement('tr');
   trCondPlat.className = 'tr-cond';
   const td0CP = document.createElement('td');
-  td0CP.innerHTML = '↳ Selon toi, pourquoi<br>pas assez dans le plat ?';
+  td0CP.innerHTML = '↳ Selon toi, pourquoi les portions<br>sont-elles insuffisantes ?';
   trCondPlat.appendChild(td0CP);
   const tdsCondPlat = [];
 
   for(let i=0;i<nbEnfants;i++) {
     const tdP = document.createElement('td'); tdP.className = 'centre';
-    tdP.appendChild(creerChoixMini(['Oui, souvent','Oui, parfois','Non'], 'q_plat_quantite', i, 'radio', (val, idx) => {
-      if(val === 'Oui, souvent' || val === 'Oui, parfois') tdsCondPlat[idx].classList.remove('td-cond-vide');
+    tdP.appendChild(creerChoixMini(['Oui, toujours','Oui, la plupart du temps','Pas toujours','Non, rarement'], 'q_plat_quantite', i, 'radio', (val, idx) => {
+      if(val !== 'Oui, toujours') tdsCondPlat[idx].classList.remove('td-cond-vide');
       else tdsCondPlat[idx].classList.add('td-cond-vide');
       refreshLigneCond(trCondPlat, tdsCondPlat);
     }));
@@ -616,7 +616,7 @@ function construireCompl() {
     const tdCP = document.createElement('td'); tdCP.className = 'centre td-cond-vide';
     const wrap = document.createElement('div');
     wrap.style.cssText='display:flex;flex-direction:column;gap:5px;';
-    wrap.appendChild(creerChoixMini(["Les portions étaient trop petites","Je n'ai pas eu le droit à la repasse","Je ne sais pas"], 'q_plat_raison', i, 'radio'));
+    wrap.appendChild(creerChoixMini(["Les portions sont trop petites","On ne me donne pas le droit à la repasse","Je ne sais pas"], 'q_plat_raison', i, 'radio'));
     wrap.appendChild(creerTextaMini('q_plat_raison_texte', i));
     tdCP.appendChild(wrap);
     trCondPlat.appendChild(tdCP);
@@ -720,13 +720,13 @@ function valider() {
       erreurs.push(1);
     }
     // Pourquoi pas assez dans le plat
-    if((reponses['q_plat_quantite_e'+i] === 'Oui, souvent' || reponses['q_plat_quantite_e'+i] === 'Oui, parfois') && !reponses['q_plat_raison_e'+i]) {
+    if(reponses['q_plat_quantite_e'+i] && reponses['q_plat_quantite_e'+i] !== 'Oui, toujours' && !reponses['q_plat_raison_e'+i] && !reponses['q_plat_raison_texte_e'+i]) {
       const inp = document.querySelector(`input[name="q_plat_raison_e${i}"]`);
       if(inp) { const td = inp.closest('td'); if(td) { td.classList.add('td-erreur'); if(!premierEl) premierEl=td; } }
       erreurs.push(1);
     }
     // Pourquoi pas de repasse
-    if(reponses['q_repasse_demande_e'+i] === "Oui, mais on m'a dit non" && !reponses['q_repasse_raison_e'+i]) {
+    if(reponses['q_repasse_demande_e'+i] === "Oui, mais on m'a dit non" && !reponses['q_repasse_raison_e'+i] && !reponses['q_repasse_raison_texte_e'+i]) {
       const inp = document.querySelector(`input[name="q_repasse_raison_e${i}"]`);
       if(inp) { const td = inp.closest('td'); if(td) { td.classList.add('td-erreur'); if(!premierEl) premierEl=td; } }
       erreurs.push(1);
