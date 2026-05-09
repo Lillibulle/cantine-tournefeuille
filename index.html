@@ -1,1 +1,806 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Questionnaire Cantine — FCPE Tournefeuille</title>
+<style>
+  :root {
+    --terracotta: #D85A30;
+    --terracotta-light: #F5C4B3;
+    --terracotta-pale: #FAECE7;
+    --vert: #3B6D11;
+    --vert-mid: #639922;
+    --vert-light: #C0DD97;
+    --vert-pale: #EAF3DE;
+    --beige: #F5F0E8;
+    --beige-mid: #E8E0D0;
+    --rouge: #C0392B;
+    --rouge-pale: #FDECEA;
+    --texte: #2C2C2A;
+    --texte-doux: #5F5E5A;
+    --blanc: #FFFFFF;
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--beige); color: var(--texte); min-height: 100vh; }
+  header { background: var(--terracotta); color: white; padding: 2.5rem 1.5rem 2rem; text-align: center; }
+  header .badge { display: inline-block; background: rgba(255,255,255,0.2); color: white; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; padding: 4px 14px; border-radius: 20px; margin-bottom: 1rem; }
+  header h1 { font-size: clamp(1.4rem, 4vw, 2rem); font-weight: 700; line-height: 1.2; margin-bottom: 0.5rem; }
+  header p { font-size: 0.95rem; opacity: 0.9; max-width: 520px; margin: 0 auto; line-height: 1.5; }
+  .pills { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-top: 1.2rem; }
+  .pill { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); color: white; font-size: 12px; font-weight: 600; padding: 5px 14px; border-radius: 20px; }
+  main { max-width: 860px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+  .bloc { background: var(--blanc); border-radius: var(--radius); padding: 1.75rem; margin-bottom: 1.25rem; border: 1px solid var(--beige-mid); }
+  .bloc-titre { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--terracotta); margin-bottom: 1.2rem; padding-bottom: 0.75rem; border-bottom: 2px solid var(--terracotta-pale); }
+  .question { margin-bottom: 1.5rem; }
+  .question:last-child { margin-bottom: 0; }
+  .question label.qlabel { display: block; font-size: 0.92rem; font-weight: 600; color: var(--texte); margin-bottom: 0.6rem; line-height: 1.4; }
+  .question label.qlabel .requis { color: var(--terracotta); margin-left: 2px; }
+  .choix-groupe { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choix-btn { border: 1.5px solid var(--beige-mid); background: var(--beige); color: var(--texte); font-size: 0.85rem; padding: 7px 16px; border-radius: var(--radius-sm); cursor: pointer; transition: all 0.15s; font-family: inherit; font-weight: 500; }
+  .choix-btn:hover { border-color: var(--terracotta-light); background: var(--terracotta-pale); }
+  .choix-btn.actif { border-color: var(--terracotta); background: var(--terracotta-pale); color: var(--terracotta); font-weight: 700; }
+  .choix-btn.vert.actif { border-color: var(--vert-mid); background: var(--vert-pale); color: var(--vert); }
+  select { width: 100%; padding: 10px 14px; border: 1.5px solid var(--beige-mid); border-radius: var(--radius-sm); background: var(--beige); font-size: 0.9rem; color: var(--texte); font-family: inherit; cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%235F5E5A' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+  textarea { width: 100%; padding: 10px 14px; border: 1.5px solid var(--beige-mid); border-radius: var(--radius-sm); background: var(--beige); font-size: 0.9rem; color: var(--texte); font-family: inherit; resize: vertical; min-height: 80px; }
+  textarea:focus, select:focus { outline: none; border-color: var(--terracotta); }
+  .nb-enfants-selector { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .nb-btn { width: 52px; height: 52px; border: 2px solid var(--beige-mid); background: var(--beige); border-radius: var(--radius-sm); font-size: 1.3rem; font-weight: 700; cursor: pointer; transition: all 0.15s; color: var(--texte-doux); font-family: inherit; display: flex; align-items: center; justify-content: center; }
+  .nb-btn:hover { border-color: var(--vert-mid); background: var(--vert-pale); }
+  .nb-btn.actif { border-color: var(--vert-mid); background: var(--vert-pale); color: var(--vert); }
+  .info-nb { font-size: 0.85rem; color: var(--vert); font-weight: 600; background: var(--vert-pale); border: 1px solid var(--vert-light); border-radius: var(--radius-sm); padding: 8px 14px; display: none; }
+  .section-enfants { display: none; }
+  .section-enfants.visible { display: block; }
+  .section-groupe-titre { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; color: var(--vert); margin: 1.5rem 0 0.8rem; padding-bottom: 0.5rem; border-bottom: 2px solid var(--vert-pale); }
+  .tableau-fratries { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+  .tableau-fratries thead th { font-size: 0.8rem; font-weight: 700; color: var(--vert); background: var(--vert-pale); padding: 10px 12px; text-align: center; border: 1px solid var(--vert-light); }
+  .tableau-fratries thead th:first-child { text-align: left; background: var(--beige-mid); color: var(--texte-doux); min-width: 180px; }
+  .tableau-fratries tbody td { padding: 10px 12px; border: 1px solid var(--beige-mid); vertical-align: top; }
+  .tableau-fratries tbody td:first-child { font-size: 0.85rem; font-weight: 500; color: var(--texte); background: var(--beige); line-height: 1.3; vertical-align: middle; }
+  .tableau-fratries tbody tr:nth-child(even) td:first-child { background: #f0ebe0; }
+  .tableau-fratries tbody td.centre { text-align: left; }
+  .choix-mini { display: flex; flex-direction: column; gap: 5px; }
+  .choix-mini label { display: flex; align-items: flex-start; gap: 7px; font-size: 0.82rem; cursor: pointer; font-weight: 400; color: var(--texte); line-height: 1.3; margin: 0; }
+  .choix-mini input[type=radio], .choix-mini input[type=checkbox] { margin-top: 2px; accent-color: var(--terracotta); flex-shrink: 0; }
+  .choix-multi { display: flex; flex-direction: column; gap: 8px; }
+  .choix-multi label { display: flex; align-items: flex-start; gap: 10px; font-size: 0.88rem; cursor: pointer; font-weight: 400; color: var(--texte); line-height: 1.4; margin: 0; }
+  .choix-multi input { margin-top: 3px; accent-color: var(--terracotta); flex-shrink: 0; }
+  .echelle-full { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .echelle-full .label-echelle { font-size: 0.78rem; color: var(--texte-doux); font-style: italic; }
+  .echelle-full .btns { display: flex; gap: 6px; }
+  .echelle-full button { width: 40px; height: 40px; border: 1.5px solid var(--beige-mid); background: var(--beige); border-radius: var(--radius-sm); font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--texte-doux); transition: all 0.12s; font-family: inherit; }
+  .echelle-full button:hover { border-color: var(--terracotta-light); background: var(--terracotta-pale); }
+  .echelle-full button.actif { border-color: var(--terracotta); background: var(--terracotta); color: white; }
+  /* Ligne conditionnelle */
+  .tr-cond { display: none; }
+  .tr-cond.visible { display: table-row; }
+  .tr-cond td { background: var(--terracotta-pale) !important; font-style: italic; }
+  .tr-cond td:first-child { color: var(--texte-doux); font-style: italic; font-size: 0.82rem; }
+  .td-cond-vide { visibility: hidden; }
+  /* Erreur validation */
+  .err-msg { display: none; color: var(--rouge); font-size: 0.78rem; font-weight: 600; margin-top: 5px; }
+  .err-msg.visible { display: block; }
+  .td-erreur { outline: 2px solid var(--rouge) !important; background: var(--rouge-pale) !important; border-radius: 4px; }
+  .bloc-erreur { border-color: var(--rouge) !important; }
+  .select-erreur { border-color: var(--rouge) !important; background: var(--rouge-pale) !important; }
+  .choix-btn-erreur { border-color: var(--rouge) !important; }
+  /* Textarea mini */
+  .ta-mini { width: 100%; margin-top: 6px; padding: 5px 8px; border: 1px solid var(--beige-mid); border-radius: 6px; font-size: 0.78rem; font-family: inherit; background: var(--beige); resize: vertical; min-height: 48px; }
+  /* Bouton soumettre */
+  .btn-soumettre { width: 100%; background: var(--terracotta); color: white; border: none; border-radius: var(--radius); padding: 1rem 2rem; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.15s; font-family: inherit; margin-top: 1.5rem; letter-spacing: 0.02em; }
+  .btn-soumettre:hover { background: #B84A22; }
+  #confirmation { display: none; text-align: center; padding: 3rem 1.5rem; background: var(--blanc); border-radius: var(--radius); border: 2px solid var(--vert-light); }
+  #confirmation .icone { width: 64px; height: 64px; background: var(--vert-pale); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.2rem; font-size: 2rem; }
+  #confirmation h2 { color: var(--vert); margin-bottom: 0.5rem; }
+  #confirmation p { color: var(--texte-doux); font-size: 0.9rem; }
+  .note { font-size: 0.78rem; color: var(--texte-doux); font-style: italic; margin-top: 0.4rem; }
+  @media (max-width: 600px) { .tableau-fratries { font-size: 0.8rem; } .tableau-fratries thead th:first-child { min-width: 120px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="badge">FCPE Tournefeuille</div>
+  <h1>Des parents, des enfants,<br>une cantine</h1>
+  <p>Ce questionnaire prend environ 5 minutes. Si tu le remplis à la place de ton enfant, réponds en te mettant à sa place. Tes réponses sont anonymes.</p>
+  <div class="pills"><span class="pill">Anonyme</span><span class="pill">5 minutes</span><span class="pill">Parents + enfants</span></div>
+</header>
+<main>
+<form id="formulaire">
+
+  <!-- BLOC A -->
+  <div class="bloc" id="bloc-a">
+    <div class="bloc-titre">A — À propos de votre famille</div>
+    <div class="question" id="q-rempli-wrap">
+      <label class="qlabel">Ce questionnaire est rempli par <span class="requis">*</span></label>
+      <div class="choix-groupe" id="grp-rempli">
+        <button type="button" class="choix-btn" data-groupe="rempli" data-val="enfant">L'enfant seul</button>
+        <button type="button" class="choix-btn" data-groupe="rempli" data-val="parent">Le parent seul</button>
+        <button type="button" class="choix-btn" data-groupe="rempli" data-val="ensemble">Ensemble</button>
+      </div>
+      <div class="err-msg" id="err-rempli">Veuillez indiquer qui remplit le questionnaire.</div>
+    </div>
+    <div class="question" id="q-ecole-wrap">
+      <label class="qlabel">Dans quelle école tes enfants sont-ils scolarisés ? <span class="requis">*</span></label>
+      <select id="ecole">
+        <option value="">— Choisir une école —</option>
+        <option>École du Château</option>
+        <option>École Crayons de Couleur / Pablo Picasso</option>
+        <option>École Moulin à Vent</option>
+        <option>École Petit Train</option>
+        <option>École Georges Lapierre</option>
+        <option>École Mirabeau</option>
+      </select>
+      <div class="err-msg" id="err-ecole">Veuillez sélectionner une école.</div>
+    </div>
+    <div class="question" id="q-nb-wrap">
+      <label class="qlabel">Combien d'enfants déjeunent à la cantine ? <span class="requis">*</span></label>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+        <div class="nb-enfants-selector">
+          <button type="button" class="nb-btn" data-nb="1">1</button>
+          <button type="button" class="nb-btn" data-nb="2">2</button>
+          <button type="button" class="nb-btn" data-nb="3">3</button>
+        </div>
+        <div class="info-nb" id="info-nb"></div>
+      </div>
+      <div class="err-msg" id="err-nb">Veuillez indiquer le nombre d'enfants.</div>
+    </div>
+  </div>
+
+  <!-- SECTION ENFANTS -->
+  <div class="section-enfants" id="section-enfants">
+    <div class="bloc" id="bloc-niveaux"><div class="bloc-titre">B — Niveau scolaire</div><div id="tableau-niveaux"></div></div>
+    <div class="bloc"><div class="section-groupe-titre">1. Les repas — Goût et qualité</div><p class="note" style="margin-bottom:1rem;">Répondez pour chacun de vos enfants.</p><div style="overflow-x:auto;"><table class="tableau-fratries"><thead><tr id="thead-gout"></tr></thead><tbody id="tbody-gout"></tbody></table></div></div>
+    <div class="bloc"><div class="section-groupe-titre">2. Les quantités</div><div style="overflow-x:auto;"><table class="tableau-fratries"><thead><tr id="thead-quantites"></tr></thead><tbody id="tbody-quantites"></tbody></table></div></div>
+    <div class="bloc"><div class="section-groupe-titre">3. Les plats végétariens</div><div style="overflow-x:auto;"><table class="tableau-fratries"><thead><tr id="thead-vege"></tr></thead><tbody id="tbody-vege"></tbody></table></div></div>
+    <div class="bloc"><div class="section-groupe-titre">4. La repasse</div><p class="note" style="margin-bottom:1rem;">Le rab, ou repasse, c'est la possibilité pour ton enfant de se resservir d'un plat s'il le souhaite.</p><div style="overflow-x:auto;"><table class="tableau-fratries"><thead><tr id="thead-repasse"></tr></thead><tbody id="tbody-repasse"></tbody></table></div></div>
+    <div class="bloc"><div class="section-groupe-titre">5. L'ambiance et les conditions de repas</div><div style="overflow-x:auto;"><table class="tableau-fratries"><thead><tr id="thead-ambiance"></tr></thead><tbody id="tbody-ambiance"></tbody></table></div></div>
+    <div class="bloc"><div class="section-groupe-titre">6. Questions complémentaires</div><div style="overflow-x:auto;"><table class="tableau-fratries"><thead><tr id="thead-compl"></tr></thead><tbody id="tbody-compl"></tbody></table></div></div>
+  </div>
+
+  <!-- BLOC GLOBAL -->
+  <div class="bloc" id="bloc-global" style="display:none;">
+    <div class="bloc-titre">C — Pour toute la famille</div>
+    <div class="question">
+      <label class="qlabel">Quels types de plats aimerais-tu voir plus souvent ? <em style="font-weight:400;color:var(--texte-doux)">(plusieurs réponses possibles)</em></label>
+      <div class="choix-multi">
+        <label><input type="checkbox" name="plats" value="viande"> Viande (bœuf, porc, agneau…)</label>
+        <label><input type="checkbox" name="plats" value="poulet"> Poulet / volaille</label>
+        <label><input type="checkbox" name="plats" value="poisson"> Poisson</label>
+        <label><input type="checkbox" name="plats" value="feculents"> Pâtes / riz / féculents</label>
+        <label><input type="checkbox" name="plats" value="legumes"> Légumes cuisinés</label>
+        <label><input type="checkbox" name="plats" value="vege"> Plats végétariens</label>
+        <label><input type="checkbox" name="plats" value="connus"> Des plats que je connais déjà</label>
+        <label><input type="checkbox" name="plats" value="autre"> Autre : <input type="text" name="plats-autre" style="margin-left:6px;padding:2px 8px;border:1px solid var(--beige-mid);border-radius:4px;font-size:0.85rem;background:var(--beige);width:140px;"></label>
+      </div>
+    </div>
+    <div class="question"><label class="qlabel">Qu'est-ce qui s'est amélioré depuis la rentrée ?</label><textarea placeholder="Votre réponse…" name="ameliore"></textarea></div>
+    <div class="question"><label class="qlabel">Qu'est-ce qui devrait encore changer en priorité ?</label><textarea placeholder="Votre réponse…" name="priorite"></textarea></div>
+    <div class="question" id="q-global-wrap">
+      <label class="qlabel">Dans l'ensemble, es-tu satisfait(e) de la cantine ? <span class="requis">*</span></label>
+      <div class="echelle-full"><span class="label-echelle">Pas du tout</span><div class="btns" id="echelle-global"></div><span class="label-echelle">Tout à fait</span></div>
+      <div class="err-msg" id="err-global">Veuillez indiquer votre satisfaction globale.</div>
+    </div>
+    <div class="question"><label class="qlabel">Suggestions ou autres remarques ?</label><textarea placeholder="Votre réponse…" name="remarques"></textarea></div>
+    <button type="submit" class="btn-soumettre">Envoyer mes réponses →</button>
+  </div>
+
+</form>
+<div id="confirmation">
+  <div class="icone">✓</div>
+  <h2>Merci pour votre participation !</h2>
+  <p>Vos réponses sont enregistrées et seront présentées en Commission Restauration Scolaire.<br>Ensemble, faisons évoluer la cantine de nos enfants.</p>
+</div>
+</main>
+
+<script>
+let nbEnfants = 0;
+const reponses = {};
+const etiquettes = ['Enfant 1','Enfant 2','Enfant 3'];
+const niveauxMat = ['Petite Section','Moyenne Section','Grande Section'];
+const niveauxElem = ['CP','CE1','CE2','CM1','CM2'];
+
+const labelsEchelle = {
+  q_gout:     ['Très mauvais','Mauvais','Moyen','Bon','Très bon'],
+  q_varies:   ['Pas du tout varié','Peu varié','Moyen','Varié','Très varié'],
+  q_portions: ['Vraiment pas assez','Pas assez','Juste assez','Suffisant','Très suffisant'],
+  q_temps:    ['Vraiment pas assez','Pas assez','Juste assez','Suffisant','Largement suffisant'],
+};
+
+// Boutons choix simples (bloc A)
+document.querySelectorAll('.choix-btn[data-groupe]').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const g = this.dataset.groupe;
+    document.querySelectorAll(`.choix-btn[data-groupe="${g}"]`).forEach(b => b.classList.remove('actif'));
+    this.classList.add('actif');
+    reponses[g] = this.dataset.val;
+    clearErr('err-rempli');
+    clearErrEl(document.getElementById('grp-rempli'), 'choix-btn-erreur');
+  });
+});
+
+document.getElementById('ecole').addEventListener('change', function() {
+  reponses['ecole'] = this.value;
+  clearErr('err-ecole');
+  this.classList.remove('select-erreur');
+});
+
+document.querySelectorAll('.nb-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.nb-btn').forEach(b => b.classList.remove('actif'));
+    this.classList.add('actif');
+    nbEnfants = parseInt(this.dataset.nb);
+    reponses['nb_enfants'] = nbEnfants;
+    const info = document.getElementById('info-nb');
+    info.style.display = 'block';
+    info.textContent = `✓ ${nbEnfants} enfant${nbEnfants>1?'s':''} sélectionné${nbEnfants>1?'s':''} — les questions suivantes s'adapteront.`;
+    clearErr('err-nb');
+    construireTous();
+    document.getElementById('section-enfants').classList.add('visible');
+    document.getElementById('bloc-global').style.display = 'block';
+  });
+});
+
+function clearErr(id) { const el = document.getElementById(id); if(el) el.classList.remove('visible'); }
+function showErr(id) { const el = document.getElementById(id); if(el) el.classList.add('visible'); }
+function clearErrEl(el, cls) { if(el) el.querySelectorAll('.'+cls).forEach(e => e.classList.remove(cls)); }
+
+// Créer choix mini radio/checkbox
+function creerChoixMini(options, qId, eIdx, type, onchange) {
+  const div = document.createElement('div');
+  div.className = 'choix-mini';
+  div.dataset.qid = qId;
+  div.dataset.eidx = eIdx;
+  options.forEach(opt => {
+    const lbl = document.createElement('label');
+    const inp = document.createElement('input');
+    inp.type = type || 'radio';
+    inp.name = `${qId}_e${eIdx}`;
+    inp.value = opt;
+    inp.addEventListener('change', function() {
+      const key = `${qId}_e${eIdx}`;
+      if(type === 'checkbox') {
+        if(!Array.isArray(reponses[key])) reponses[key] = [];
+        if(this.checked) reponses[key].push(opt); else reponses[key] = reponses[key].filter(v=>v!==opt);
+      } else {
+        reponses[key] = opt;
+      }
+      // Effacer erreur sur ce td
+      const td = inp.closest('td');
+      if(td) td.classList.remove('td-erreur');
+      if(onchange) onchange(opt, eIdx);
+    });
+    lbl.appendChild(inp);
+    lbl.appendChild(document.createTextNode(' '+opt));
+    div.appendChild(lbl);
+  });
+  return div;
+}
+
+function creerTextaMini(name, eIdx) {
+  const ta = document.createElement('textarea');
+  ta.className = 'ta-mini';
+  ta.placeholder = 'Autre raison...';
+  ta.name = name+'_e'+eIdx;
+  ta.addEventListener('input', function() { reponses[name+'_e'+eIdx] = this.value; });
+  return ta;
+}
+
+function buildThead(trId) {
+  const tr = document.getElementById(trId);
+  tr.innerHTML = '';
+  const th0 = document.createElement('th'); th0.textContent = 'Question'; tr.appendChild(th0);
+  for(let i=0;i<nbEnfants;i++) { const th = document.createElement('th'); th.textContent = etiquettes[i]; tr.appendChild(th); }
+}
+
+// Ajouter ligne simple
+function addLigne(tbody, labelHtml, buildCellFn) {
+  const tr = document.createElement('tr');
+  const td0 = document.createElement('td'); td0.innerHTML = labelHtml; tr.appendChild(td0);
+  for(let i=0;i<nbEnfants;i++) {
+    const td = document.createElement('td'); td.className = 'centre';
+    buildCellFn(td, i);
+    tr.appendChild(td);
+  }
+  tbody.appendChild(tr);
+  return tr;
+}
+
+// Ajouter ligne conditionnelle : s'affiche par cellule selon réponse par enfant
+function addLigneCond(tbody, labelHtml, buildCellFn) {
+  const tr = document.createElement('tr');
+  tr.className = 'tr-cond';
+  const td0 = document.createElement('td'); td0.innerHTML = labelHtml; tr.appendChild(td0);
+  const tds = [];
+  for(let i=0;i<nbEnfants;i++) {
+    const td = document.createElement('td'); td.className = 'centre td-cond-vide';
+    buildCellFn(td, i);
+    tr.appendChild(td);
+    tds.push(td);
+  }
+  tbody.appendChild(tr);
+  return { tr, tds };
+}
+
+// Afficher/masquer ligne cond selon si au moins une cellule visible
+function refreshLigneCond(tr, tds) {
+  const anyVisible = tds.some(td => !td.classList.contains('td-cond-vide'));
+  if(anyVisible) tr.classList.add('visible');
+  else tr.classList.remove('visible');
+}
+
+function construireTous() {
+  construireNiveaux();
+  construireTableau('gout', [
+    { label: 'Comment trouves-tu le goût<br>des repas à la cantine ?', qId: 'q_gout', type: 'echelle' },
+    { label: 'Est-ce que les plats servis<br>sont variés ?', qId: 'q_varies', type: 'echelle' },
+  ]);
+  construireTableau('quantites', [
+    { label: 'Les portions sont-elles suffisantes<br>pour ne pas avoir faim après ?', qId: 'q_portions', type: 'echelle' },
+    { label: 'As-tu encore faim dans<br>l\'après-midi ?', qId: 'q_faim', options: ['Oui, souvent','Oui, parfois','Non, rarement','Non, jamais'] },
+  ]);
+  construireTableau('vege', [
+    { label: 'Comment trouves-tu les plats<br>végétariens par rapport aux autres ?', qId: 'q_vege_qualite', options: ['Moins bons que les autres','Aussi bons que les autres','Meilleurs que les autres','Je ne sais pas'] },
+    { label: 'Un repas végétarien est proposé<br>une fois/semaine. Est-ce suffisant ?', qId: 'q_vege_freq', options: ["J'aimerais en avoir plus souvent","Oui, une fois par semaine c'est bien","C'est trop, j'en voudrais moins","Je ne sais pas"] },
+  ]);
+  construireRepasse();
+  construireAmbiance();
+  construireCompl();
+  construireEchelleGlobal();
+}
+
+function construireTableau(id, questions) {
+  buildThead('thead-'+id);
+  const tbody = document.getElementById('tbody-'+id);
+  tbody.innerHTML = '';
+  questions.forEach(q => {
+    addLigne(tbody, q.label, (td, i) => {
+      const opts = q.type === 'echelle' ? (labelsEchelle[q.qId] || []) : q.options;
+      td.appendChild(creerChoixMini(opts, q.qId, i, 'radio'));
+    });
+  });
+}
+
+function construireNiveaux() {
+  const cont = document.getElementById('tableau-niveaux');
+  cont.innerHTML = '';
+  for(let i=0;i<nbEnfants;i++) {
+    const div = document.createElement('div');
+    div.style.marginBottom = '1.2rem';
+    div.id = 'niveau-bloc-e'+i;
+    const titre = document.createElement('div');
+    titre.style.cssText = 'font-weight:700;font-size:0.88rem;color:var(--vert);margin-bottom:0.5rem;';
+    titre.textContent = etiquettes[i];
+    div.appendChild(titre);
+    // Maternelle / Élémentaire
+    const lbl = document.createElement('label');
+    lbl.style.cssText = 'font-size:0.85rem;font-weight:600;color:var(--texte);display:block;margin-bottom:0.4rem;';
+    lbl.textContent = 'Ton enfant est en :';
+    div.appendChild(lbl);
+    const choixNiv = document.createElement('div');
+    choixNiv.style.cssText = 'display:flex;gap:8px;margin-bottom:0.5rem;';
+    const errNiv = document.createElement('div');
+    errNiv.className = 'err-msg';
+    errNiv.id = 'err-niveau-e'+i;
+    errNiv.textContent = 'Veuillez indiquer le niveau.';
+    const condMat = document.createElement('div');
+    condMat.id = 'cond-mat-e'+i;
+    condMat.style.display='none';
+    condMat.style.marginTop='0.5rem';
+    const condElem = document.createElement('div');
+    condElem.id = 'cond-elem-e'+i;
+    condElem.style.display='none';
+    condElem.style.marginTop='0.5rem';
+    ['Maternelle','Élémentaire'].forEach(niv => {
+      const btn = document.createElement('button');
+      btn.type='button'; btn.className='choix-btn vert'; btn.textContent=niv;
+      btn.addEventListener('click', function() {
+        choixNiv.querySelectorAll('.choix-btn').forEach(b=>b.classList.remove('actif'));
+        this.classList.add('actif');
+        reponses['niveau_e'+i] = niv;
+        condMat.style.display = niv==='Maternelle'?'block':'none';
+        condElem.style.display = niv==='Élémentaire'?'block':'none';
+        errNiv.classList.remove('visible');
+      });
+      choixNiv.appendChild(btn);
+    });
+    div.appendChild(choixNiv);
+    div.appendChild(errNiv);
+    // Maternelle
+    const lblMat = document.createElement('label');
+    lblMat.style.cssText='font-size:0.82rem;font-weight:600;color:var(--texte-doux);display:block;margin-bottom:0.4rem;';
+    lblMat.textContent='Section :';
+    condMat.appendChild(lblMat);
+    const selMat = document.createElement('div');
+    selMat.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
+    const errMat = document.createElement('div');
+    errMat.className='err-msg'; errMat.id='err-mat-e'+i; errMat.textContent='Veuillez indiquer la section.';
+    niveauxMat.forEach(n => {
+      const btn = document.createElement('button');
+      btn.type='button'; btn.className='choix-btn'; btn.textContent=n;
+      btn.addEventListener('click', function() {
+        selMat.querySelectorAll('.choix-btn').forEach(b=>b.classList.remove('actif'));
+        this.classList.add('actif');
+        reponses['niveau_detail_e'+i]=n;
+        errMat.classList.remove('visible');
+      });
+      selMat.appendChild(btn);
+    });
+    condMat.appendChild(selMat);
+    condMat.appendChild(errMat);
+    div.appendChild(condMat);
+    // Élémentaire
+    const lblElem = document.createElement('label');
+    lblElem.style.cssText='font-size:0.82rem;font-weight:600;color:var(--texte-doux);display:block;margin-bottom:0.4rem;';
+    lblElem.textContent='Classe :';
+    condElem.appendChild(lblElem);
+    const selElem = document.createElement('div');
+    selElem.style.cssText='display:flex;gap:6px;flex-wrap:wrap;';
+    const errElem = document.createElement('div');
+    errElem.className='err-msg'; errElem.id='err-elem-e'+i; errElem.textContent='Veuillez indiquer la classe.';
+    niveauxElem.forEach(n => {
+      const btn = document.createElement('button');
+      btn.type='button'; btn.className='choix-btn'; btn.textContent=n;
+      btn.addEventListener('click', function() {
+        selElem.querySelectorAll('.choix-btn').forEach(b=>b.classList.remove('actif'));
+        this.classList.add('actif');
+        reponses['niveau_detail_e'+i]=n;
+        errElem.classList.remove('visible');
+      });
+      selElem.appendChild(btn);
+    });
+    condElem.appendChild(selElem);
+    condElem.appendChild(errElem);
+    div.appendChild(condElem);
+    cont.appendChild(div);
+  }
+}
+
+function construireRepasse() {
+  buildThead('thead-repasse');
+  const tbody = document.getElementById('tbody-repasse');
+  tbody.innerHTML = '';
+
+  addLigne(tbody, 'Sais-tu qu\'il est possible<br>de demander de la repasse ?', (td, i) => {
+    td.appendChild(creerChoixMini(['Oui','Non'], 'q_repasse_sait', i, 'radio'));
+  });
+
+  // Ligne "As-tu demandé" en premier
+  const trDemande = document.createElement('tr');
+  const td0Demande = document.createElement('td');
+  td0Demande.innerHTML = 'As-tu déjà demandé<br>de la repasse ?';
+  trDemande.appendChild(td0Demande);
+
+  // Ligne conditionnelle "Pourquoi" — construite après mais insérée après trDemande
+  const trCond = document.createElement('tr');
+  trCond.className = 'tr-cond';
+  const td0Cond = document.createElement('td');
+  td0Cond.innerHTML = '↳ Pourquoi n\'as-tu pas pu<br>avoir de repasse ?';
+  trCond.appendChild(td0Cond);
+  const tdsCond = [];
+
+  for(let i=0;i<nbEnfants;i++) {
+    // Cellule ligne demande
+    const tdD = document.createElement('td'); tdD.className = 'centre';
+    tdD.appendChild(creerChoixMini(["Oui, et je l'ai obtenu","Oui, mais on m'a dit non","Non, jamais demandé"], 'q_repasse_demande', i, 'radio', (val, idx) => {
+      if(val === "Oui, mais on m'a dit non") {
+        tdsCond[idx].classList.remove('td-cond-vide');
+      } else {
+        tdsCond[idx].classList.add('td-cond-vide');
+      }
+      refreshLigneCond(trCond, tdsCond);
+    }));
+    trDemande.appendChild(tdD);
+
+    // Cellule ligne cond
+    const tdC = document.createElement('td'); tdC.className = 'centre td-cond-vide';
+    const wrap = document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;gap:5px;';
+    wrap.appendChild(creerChoixMini(["Il n'y en avait plus","On m'a dit que ce n'était pas possible","Je ne sais pas pourquoi"], 'q_repasse_raison', i, 'radio'));
+    wrap.appendChild(creerTextaMini('q_repasse_raison_texte', i));
+    tdC.appendChild(wrap);
+    trCond.appendChild(tdC);
+    tdsCond.push(tdC);
+  }
+
+  tbody.appendChild(trDemande);
+  tbody.appendChild(trCond);
+}
+
+function construireAmbiance() {
+  buildThead('thead-ambiance');
+  const tbody = document.getElementById('tbody-ambiance');
+  tbody.innerHTML = '';
+
+  addLigne(tbody, 'As-tu suffisamment de temps<br>pour manger ?', (td, i) => {
+    td.appendChild(creerChoixMini(labelsEchelle['q_temps'], 'q_temps', i, 'radio'));
+  });
+
+  // Ligne "Faut-il lever la main" d'abord
+  const trMain = document.createElement('tr');
+  const td0Main = document.createElement('td');
+  td0Main.innerHTML = 'Faut-il lever la main pour passer<br>au plat suivant ?';
+  trMain.appendChild(td0Main);
+
+  const trCond = document.createElement('tr');
+  trCond.className = 'tr-cond';
+  const td0Cond = document.createElement('td');
+  td0Cond.innerHTML = '↳ As-tu attendu longtemps avant<br>qu\'un adulte te donne le droit ?';
+  trCond.appendChild(td0Cond);
+  const tdsCond = [];
+
+  for(let i=0;i<nbEnfants;i++) {
+    const tdM = document.createElement('td'); tdM.className = 'centre';
+    tdM.appendChild(creerChoixMini(['Oui','Non','Je ne sais pas'], 'q_main', i, 'radio', (val, idx) => {
+      if(val === 'Oui') {
+        tdsCond[idx].classList.remove('td-cond-vide');
+      } else {
+        tdsCond[idx].classList.add('td-cond-vide');
+      }
+      refreshLigneCond(trCond, tdsCond);
+    }));
+    trMain.appendChild(tdM);
+
+    const tdC = document.createElement('td'); tdC.className = 'centre td-cond-vide';
+    tdC.appendChild(creerChoixMini(['Oui, souvent','Oui, parfois','Non, jamais'], 'q_main_attente', i, 'radio'));
+    trCond.appendChild(tdC);
+    tdsCond.push(tdC);
+  }
+
+  tbody.appendChild(trMain);
+  tbody.appendChild(trCond);
+
+  addLigne(tbody, 'Comment trouves-tu le bruit<br>dans la salle de restauration ?', (td, i) => {
+    td.appendChild(creerChoixMini(['Insupportable','Fatigant','Gênant','Acceptable','Agréable'], 'q_bruit', i, 'radio'));
+  });
+}
+
+function construireCompl() {
+  buildThead('thead-compl');
+  const tbody = document.getElementById('tbody-compl');
+  tbody.innerHTML = '';
+
+  // Finit son repas
+  const trFinit = document.createElement('tr');
+  const td0Finit = document.createElement('td');
+  td0Finit.innerHTML = 'Est-ce que certaines fois<br>tu ne finis pas ton repas ?';
+  trFinit.appendChild(td0Finit);
+
+  const trCondFinit = document.createElement('tr');
+  trCondFinit.className = 'tr-cond';
+  const td0CF = document.createElement('td');
+  td0CF.innerHTML = '↳ Pourquoi tu ne finis<br>pas ton repas ?';
+  trCondFinit.appendChild(td0CF);
+  const tdsCondFinit = [];
+
+  for(let i=0;i<nbEnfants;i++) {
+    const tdF = document.createElement('td'); tdF.className = 'centre';
+    tdF.appendChild(creerChoixMini(['Oui','Non'], 'q_finit', i, 'radio', (val, idx) => {
+      if(val === 'Oui') tdsCondFinit[idx].classList.remove('td-cond-vide');
+      else tdsCondFinit[idx].classList.add('td-cond-vide');
+      refreshLigneCond(trCondFinit, tdsCondFinit);
+    }));
+    trFinit.appendChild(tdF);
+
+    const tdCF = document.createElement('td'); tdCF.className = 'centre td-cond-vide';
+    tdCF.appendChild(creerChoixMini(["Je n'aime pas le goût","Je ne reconnais pas le plat","Il y a trop de mélange","Je n'ai plus faim","Pas assez de temps","Texture désagréable"], 'q_finit_raison', i, 'radio'));
+    trCondFinit.appendChild(tdCF);
+    tdsCondFinit.push(tdCF);
+  }
+  tbody.appendChild(trFinit);
+  tbody.appendChild(trCondFinit);
+
+  // Plat principal
+  const trPlat = document.createElement('tr');
+  const td0Plat = document.createElement('td');
+  td0Plat.innerHTML = "Est-ce qu'il y a assez à manger<br>dans le plat principal ?";
+  trPlat.appendChild(td0Plat);
+
+  const trCondPlat = document.createElement('tr');
+  trCondPlat.className = 'tr-cond';
+  const td0CP = document.createElement('td');
+  td0CP.innerHTML = '↳ Selon toi, pourquoi les portions<br>sont-elles insuffisantes ?';
+  trCondPlat.appendChild(td0CP);
+  const tdsCondPlat = [];
+
+  for(let i=0;i<nbEnfants;i++) {
+    const tdP = document.createElement('td'); tdP.className = 'centre';
+    tdP.appendChild(creerChoixMini(['Oui, toujours','Oui, la plupart du temps','Pas toujours','Non, rarement'], 'q_plat_quantite', i, 'radio', (val, idx) => {
+      if(val !== 'Oui, toujours') tdsCondPlat[idx].classList.remove('td-cond-vide');
+      else tdsCondPlat[idx].classList.add('td-cond-vide');
+      refreshLigneCond(trCondPlat, tdsCondPlat);
+    }));
+    trPlat.appendChild(tdP);
+
+    const tdCP = document.createElement('td'); tdCP.className = 'centre td-cond-vide';
+    const wrap = document.createElement('div');
+    wrap.style.cssText='display:flex;flex-direction:column;gap:5px;';
+    wrap.appendChild(creerChoixMini(["Les portions sont trop petites","On ne me donne pas le droit à la repasse","Je ne sais pas"], 'q_plat_raison', i, 'radio'));
+    wrap.appendChild(creerTextaMini('q_plat_raison_texte', i));
+    tdCP.appendChild(wrap);
+    trCondPlat.appendChild(tdCP);
+    tdsCondPlat.push(tdCP);
+  }
+  tbody.appendChild(trPlat);
+  tbody.appendChild(trCondPlat);
+
+  addLigne(tbody, 'Tu préfères quand :', (td, i) => {
+    td.appendChild(creerChoixMini(['Aliments séparés (viande + légumes)','Plats mélangés (gratins, sauces…)'], 'q_presentation', i, 'radio'));
+  });
+}
+
+function construireEchelleGlobal() {
+  const cont = document.getElementById('echelle-global');
+  cont.innerHTML = '';
+  for(let v=1;v<=5;v++) {
+    const btn = document.createElement('button');
+    btn.type='button'; btn.textContent=v;
+    btn.addEventListener('click', function() {
+      cont.querySelectorAll('button').forEach(b=>b.classList.remove('actif'));
+      this.classList.add('actif');
+      reponses['satisfaction_globale'] = v;
+      clearErr('err-global');
+      document.getElementById('q-global-wrap').classList.remove('bloc-erreur');
+    });
+    cont.appendChild(btn);
+  }
+}
+
+// VALIDATION
+function valider() {
+  const erreurs = [];
+  let premierEl = null;
+
+  function marquerErr(elId, msgId) {
+    showErr(msgId);
+    const el = document.getElementById(elId);
+    if(el) { el.classList.add('select-erreur'); if(!premierEl) premierEl = el; }
+  }
+
+  function marquerErrChoix(grpId, msgId) {
+    showErr(msgId);
+    const el = document.getElementById(grpId);
+    if(el && !premierEl) premierEl = el;
+  }
+
+  // Rempli par
+  if(!reponses['rempli']) {
+    showErr('err-rempli');
+    if(!premierEl) premierEl = document.getElementById('q-rempli-wrap');
+    erreurs.push(1);
+  }
+  // École
+  if(!document.getElementById('ecole').value) {
+    showErr('err-ecole');
+    document.getElementById('ecole').classList.add('select-erreur');
+    if(!premierEl) premierEl = document.getElementById('q-ecole-wrap');
+    erreurs.push(1);
+  }
+  // Nb enfants
+  if(!nbEnfants) {
+    showErr('err-nb');
+    if(!premierEl) premierEl = document.getElementById('q-nb-wrap');
+    erreurs.push(1);
+  }
+
+  // Par enfant
+  for(let i=0;i<nbEnfants;i++) {
+    if(!reponses['niveau_e'+i]) {
+      showErr('err-niveau-e'+i);
+      if(!premierEl) premierEl = document.getElementById('niveau-bloc-e'+i);
+      erreurs.push(1);
+    }
+    if(!reponses['niveau_detail_e'+i]) {
+      const niv = reponses['niveau_e'+i];
+      if(niv==='Maternelle') { showErr('err-mat-e'+i); if(!premierEl) premierEl=document.getElementById('cond-mat-e'+i); }
+      else if(niv==='Élémentaire') { showErr('err-elem-e'+i); if(!premierEl) premierEl=document.getElementById('cond-elem-e'+i); }
+      erreurs.push(1);
+    }
+
+    const qsOblig = ['q_gout','q_varies','q_portions','q_faim','q_vege_qualite','q_vege_freq',
+                     'q_repasse_sait','q_repasse_demande','q_temps','q_main','q_bruit',
+                     'q_finit','q_plat_quantite','q_presentation'];
+    qsOblig.forEach(q => {
+      if(!reponses[q+'_e'+i]) {
+        const inp = document.querySelector(`input[name="${q}_e${i}"]`);
+        if(inp) {
+          const td = inp.closest('td');
+          if(td) { td.classList.add('td-erreur'); if(!premierEl) premierEl=td; }
+        }
+        erreurs.push(1);
+      }
+    });
+
+    // Conditionnels obligatoires si déclenchés
+    // Pourquoi ne finit pas
+    if(reponses['q_finit_e'+i] === 'Oui' && !reponses['q_finit_raison_e'+i]) {
+      const inp = document.querySelector(`input[name="q_finit_raison_e${i}"]`);
+      if(inp) { const td = inp.closest('td'); if(td) { td.classList.add('td-erreur'); if(!premierEl) premierEl=td; } }
+      erreurs.push(1);
+    }
+    // Pourquoi pas assez dans le plat
+    if(reponses['q_plat_quantite_e'+i] && reponses['q_plat_quantite_e'+i] !== 'Oui, toujours' && !reponses['q_plat_raison_e'+i] && !reponses['q_plat_raison_texte_e'+i]) {
+      const inp = document.querySelector(`input[name="q_plat_raison_e${i}"]`);
+      if(inp) { const td = inp.closest('td'); if(td) { td.classList.add('td-erreur'); if(!premierEl) premierEl=td; } }
+      erreurs.push(1);
+    }
+    // Pourquoi pas de repasse
+    if(reponses['q_repasse_demande_e'+i] === "Oui, mais on m'a dit non" && !reponses['q_repasse_raison_e'+i] && !reponses['q_repasse_raison_texte_e'+i]) {
+      const inp = document.querySelector(`input[name="q_repasse_raison_e${i}"]`);
+      if(inp) { const td = inp.closest('td'); if(td) { td.classList.add('td-erreur'); if(!premierEl) premierEl=td; } }
+      erreurs.push(1);
+    }
+    // Attente lever main
+    if(reponses['q_main_e'+i] === 'Oui' && !reponses['q_main_attente_e'+i]) {
+      const inp = document.querySelector(`input[name="q_main_attente_e${i}"]`);
+      if(inp) { const td = inp.closest('td'); if(td) { td.classList.add('td-erreur'); if(!premierEl) premierEl=td; } }
+      erreurs.push(1);
+    }
+  }
+
+  // Satisfaction globale
+  if(!reponses['satisfaction_globale']) {
+    showErr('err-global');
+    document.getElementById('q-global-wrap').classList.add('bloc-erreur');
+    if(!premierEl) premierEl = document.getElementById('q-global-wrap');
+    erreurs.push(1);
+  }
+
+  return { ok: erreurs.length===0, premierEl };
+}
+
+document.getElementById('formulaire').addEventListener('submit', function(e) {
+  e.preventDefault();
+  const { ok, premierEl } = valider();
+  if(!ok) {
+    if(premierEl) premierEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    return;
+  }
+
+  // Construire les données
+  const data = new FormData();
+  data.append('_subject', 'Nouvelle réponse — Cantine Tournefeuille');
+  data.append('_captcha', 'false');
+  data.append('_template', 'table');
+
+  // Toutes les réponses boutons/radios
+  Object.entries(reponses).forEach(([key, val]) => {
+    data.append(key, Array.isArray(val) ? val.join(', ') : String(val));
+  });
+
+  // Champs texte libres et checkboxes
+  document.querySelectorAll('textarea[name]').forEach(el => {
+    if(el.value.trim()) data.append(el.name, el.value.trim());
+  });
+  const cbVals = [];
+  document.querySelectorAll('input[type=checkbox]:checked').forEach(el => cbVals.push(el.value));
+  if(cbVals.length) data.append('plats_souhaites', cbVals.join(', '));
+  const cbAutre = document.querySelector('input[name="plats-autre"]');
+  if(cbAutre && cbAutre.value.trim()) data.append('plats_souhaites_autre', cbAutre.value.trim());
+
+  // Afficher confirmation
+  document.getElementById('formulaire').style.display = 'none';
+  document.getElementById('confirmation').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Envoyer en arrière-plan
+  fetch('https://formsubmit.co/fcpe.cantine.tournefeuille@gmail.com', {
+    method: 'POST',
+    body: data
+  }).catch(err => console.log('Erreur email:', err));
+
+  // Envoyer vers Google Sheets
+  const jsonData = {};
+  for(let [key, val] of data.entries()) { jsonData[key] = val; }
+  fetch('https://script.google.com/macros/s/AKfycby5QVTJAMt2IxF9kLONyKL1cH0i9Mbja22m6BvlO1PmMoBIRg4sA4xs6malHYkrvpqSUw/exec', {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(jsonData)
+  }).catch(err => console.log('Erreur Sheets:', err));
+});
+</script>
+</body>
+</html>
 
